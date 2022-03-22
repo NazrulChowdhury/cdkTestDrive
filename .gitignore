@@ -114,5 +114,5 @@ dist
 .tern-port
 
 #cdk
-README.md
 cdk.out/
+
