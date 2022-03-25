@@ -11,7 +11,7 @@ import { GenericTable } from '../generic/GenericTable';
 export class CdkTestDriveStack extends Stack {
 
   private api = new RestApi(this, 'cdk-api')
-  private testTable = new GenericTable('first-cdk-table', 'testTableID', this)
+  private testTable = new GenericTable('userTable', 'userId', this)
 
   constructor(scope: Construct, id: string, props?: StackProps) { 
     super(scope, id, props);
