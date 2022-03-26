@@ -2,6 +2,7 @@ import { Stack } from "aws-cdk-lib"
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb"
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs"
 import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway"
+import { join } from "path"
 
 export interface TableProps {
     tableName : string,
@@ -32,6 +33,8 @@ export class GenericTable {
     }
     private initialize(){
         this.createTable()
+        this.createLambdas()
+        this.grantTableRights()
     }
     private createTable(){
         this.table = new Table(this.stack, this.props.tableName,{
@@ -42,5 +45,48 @@ export class GenericTable {
             tableName : this.props.tableName
         })
     }
-    //public createLambdaIntegration (){}
+    private createLambdas (){
+        if(this.props.createLambdaPath){
+            this.createLambda = this.createNewLambda(this.props.createLambdaPath)
+            this.createLambdaIntegration = new LambdaIntegration(this.createLambda)
+        }
+        if(this.props.readLambdaPath){
+            this.readLambda = this.createNewLambda(this.props.readLambdaPath)
+            this.readLambdaIntegration = new LambdaIntegration(this.readLambda)
+        }
+        if(this.props.updateLambdaPath){
+            this.updateLambda = this.createNewLambda(this.props.updateLambdaPath)
+            this.updateLambdaIntegration = new LambdaIntegration(this.updateLambda)
+        }
+        if(this.props.deleteLambdaPath){
+            this.deleteLambda = this.createNewLambda(this.props.deleteLambdaPath)
+            this.deleteLambdaIntegration = new LambdaIntegration(this.deleteLambda)
+        }
+    }
+    private createNewLambda (lambdaName : string) : NodejsFunction {
+        const lambdaId = `${lambdaName}-${this.props.tableName}`
+        return new NodejsFunction(this.stack, lambdaId,{
+            entry : (join(__dirname,'..', '..', 'services', this.props.tableName, `${lambdaName}.ts`)),
+            handler : 'handler',
+            functionName : lambdaName,
+            environment : {
+                TABLE_NAME : this.props.tableName,
+                PRIMARY_KEY : this.props.primaryKey
+            }
+        })
+    }
+    private grantTableRights(){
+        if(this.createLambda){
+            this.table.grantWriteData(this.createLambda)
+        }
+        if(this.readLambda){
+            this.table.grantReadData(this.readLambda)
+        }
+        if(this.updateLambda){
+            this.table.grantWriteData(this.updateLambda)
+        }
+        if(this.deleteLambda){
+            this.table.grantWriteData(this.deleteLambda)
+        }
+    }
 }
