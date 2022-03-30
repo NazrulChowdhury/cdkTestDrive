@@ -1,7 +1,28 @@
+import { DynamoDB } from 'aws-sdk'
 import {APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda"
-export const handler = (event:APIGatewayProxyEvent, context:Context) => {
-    return {
+import { v4 as uuidv4 } from "uuid"
+
+const dbClient = new DynamoDB.DocumentClient()
+
+export const handler = async(event:APIGatewayProxyEvent, context:Context) => {
+
+    const result: APIGatewayProxyResult = {
         statusCode : 200,
-        body : 'it is working!'
+        body : 'user created!'
     }
+    const user = typeof event.body == 'object'? event.body : JSON.parse(event.body) 
+    user[process.env.PRIMARY_KEY!] = uuidv4()
+    
+    try{
+        await dbClient.put({
+            TableName : process.env.TABLE_NAME!,
+            Item : user
+        }).promise()
+    } catch (error : any){
+        if(error instanceof Error) {
+            result.statusCode = 500,
+            result.body = error.message
+        }
+    }
+    return result
 }
