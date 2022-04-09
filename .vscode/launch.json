@@ -12,7 +12,9 @@
                 "${relativeFile}"
             ],
             "env": {
-                "AWS-REGION": "eu-west-2"
+                "AWS_REGION": "eu-west-2",
+                "TABLE_NAME" : "userTable",
+                "PRIMARY_KEY" : "userId"
             }
         }
     ]

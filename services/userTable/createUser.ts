@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid"
 
 const dbClient = new DynamoDB.DocumentClient()
 
-export const handler = async(event:APIGatewayProxyEvent, context:Context) => {
+export const handler = async(event:APIGatewayProxyEvent, context:Context) : Promise <APIGatewayProxyResult> => {
 
     const result: APIGatewayProxyResult = {
         statusCode : 200,
@@ -18,7 +18,7 @@ export const handler = async(event:APIGatewayProxyEvent, context:Context) => {
             TableName : process.env.TABLE_NAME!,
             Item : user
         }).promise()
-    } catch (error : any){
+    } catch (error ){
         if(error instanceof Error) {
             result.statusCode = 500,
             result.body = error.message
